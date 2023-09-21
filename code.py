@@ -95,6 +95,7 @@ last_four_colors = deque(['red','red','red','red'], maxlen=4)
 last_three_states = deque(['red','red','red'], maxlen=3)
 current_state = "red"
 red_frames = 0
+currently_blinking = False
 
 # Process each frame
 while True:
@@ -117,17 +118,24 @@ while True:
             current_state = "red"
         if(last_three_states[-1] == "green"):
             current_state = "green"
-
+        blinking = False
         # Traffic light patterns to detect blinking
-        blinking = check_last_three_states("off", "red", "off")                 # Red blinking
-        blinking = blinking or check_last_three_states("red", "off", "red")     # Red blinking
-        blinking = blinking or check_last_three_states("off", "green", "red")   # Initial blinking
-        blinking = blinking or check_last_three_states("off", "red", "green")   # Initial blinking
+        if last_three_states[-2] == "green" and (last_three_states[-1] == "red" or last_three_states[-1] == "off"):
+            currently_blinking = True # Only activate blinking if the light was green before turning red
+            current_state = "blinking"
+            blinking = True
+        if currently_blinking:
+            blinking = check_last_three_states("off", "red", "off")                 
+            blinking = blinking or check_last_three_states("red", "off", "red")     
+            blinking = blinking or check_last_three_states("off", "green", "red")   
+            blinking = blinking or check_last_three_states("off", "red", "green")   
+            blinking = blinking or check_last_three_states("off", "green", "off")  
 
         if blinking:
             current_state = "blinking"
-        if red_frames > 15: # Post blinking red
+        if red_frames > 20: # Post blinking red
             current_state = "red"
+            currently_blinking = False
         
         values = return_color_values(current_state)
 
